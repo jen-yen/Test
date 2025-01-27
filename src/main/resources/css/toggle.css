@@ -1,0 +1,25 @@
+.toggle-button {
+    -fx-background-color: #1f1f2e;
+    -fx-background-radius: 10;
+    -fx-padding: 6;
+    -fx-font-size: 12;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-border-width: 3;
+    -fx-border-radius: 10;
+    -fx-cursor: hand; 
+}
+
+
+.toggle-button:hover {
+    -fx-background-color: #2b2b3a; 
+}
+
+
+.toggle-button:selected {
+    -fx-border-color: #007acc;
+}
+
+.toggle-button:pressed {
+    -fx-background-color: #12121a;
+}

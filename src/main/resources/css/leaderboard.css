@@ -1,0 +1,52 @@
+/* Root-Panel Styling */
+.leaderboard-root {
+    -fx-background-color: #1f1f2e; 
+    -fx-padding: 20px;
+}
+
+/* Table Styling */
+.leaderboard-table {
+    -fx-border-color: #ffffff;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 10px;
+    -fx-font-size: 14px; 
+    -fx-background-color: transparent;
+    -fx-table-cell-border-color: #2c2c3a;
+    -fx-control-inner-background: #2c2c3a; 
+    -fx-control-inner-background-alt: #2c2c3a;
+    -fx-border-insets: 5px;
+}
+
+/* Column Styling */
+.table-column {
+    -fx-alignment: CENTER; 
+    -fx-font-size: 14px;
+}
+
+.text-title {
+    -fx-font-size: 36px;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Arial Black", sans-serif;
+    -fx-padding: 15px 0;
+    -fx-alignment: center;
+    -fx-translate-y: -20px;
+}
+
+/* General Button Styles */
+.button {
+    -fx-background-color: #2a2a3b;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial", sans-serif;
+    -fx-padding: 10px;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+/* Hover Effect for Buttons */
+.button:hover {
+    -fx-background-color: #3a3a4f;
+}

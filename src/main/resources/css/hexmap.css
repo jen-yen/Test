@@ -1,0 +1,87 @@
+@font-face {
+    font-family: "Roboto Merged Icons Black";
+    font-style: normal;
+    font-weight: 900;
+    src: url("/fonts/Roboto-Merged-Icons-Black.ttf");
+}
+
+@font-face {
+    font-family: "Roboto Merged Icons";
+    font-style: normal;
+    font-weight: normal;
+    src: url("/fonts/Roboto-Merged-Icons.ttf");
+}
+
+* {
+    -selectable-color: gray;
+    -selectable-tile-color: red;
+    -selected-color: white;
+    -highlight-color: lime;
+    -fx-font-family: "Roboto Merged Icons";
+}
+
+.hex-grid {
+    -fx-background-color: #005aa9;
+}
+
+.hex-tile {
+    -fx-shape: "m 280, 75 0, 150 -130, 75 L 20, 225 20, 75 150, -0 Z";
+    -fx-border-color: #000000;
+    -fx-border-width: 5px;
+}
+
+.highlighted,
+.selectable {
+    -fx-border-width: 5px;
+}
+
+.selectable {
+    -fx-stroke: -selectable-color;
+    -fx-border-color: transparent;
+}
+
+.selected {
+    -fx-stroke: -selected-color;
+}
+
+.hex-tile.selectable {
+    -fx-border-color: -selectable-tile-color;
+}
+
+.highlighted,
+.selectable:hover,
+.selectable:focus,
+.selectable:focused,
+.hex-tile.selectable:hover,
+.hex-tile.selectable:focus {
+    -fx-stroke: -highlight-color;
+    -fx-border-color: -highlight-color;
+}
+
+.selectable.selected,
+.selectable:selected {
+    -fx-border-color: -selectable-color;
+}
+
+.highlighted-label.label .text {
+    -fx-font-family: "Roboto Merged Icons Black";
+    -fx-font-weight: 900;
+    -fx-font-size: 3em;
+    -fx-fill: white;
+    -fx-stroke: black;
+    -fx-stroke-width: 1px;
+}
+
+.bold,
+.bold .text {
+    -fx-font-family: "Roboto Merged Icons Black";
+    -fx-font-weight: 900;
+}
+
+.selected.label .text {
+    -fx-font-size: 4em;
+    -fx-font-weight: 900;
+    -fx-stroke: rgb(0, 0, 0);
+    -fx-stroke-width: 2px;
+    -fx-fill: rgb(0, 251, 255);
+}

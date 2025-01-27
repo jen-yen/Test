@@ -1,0 +1,51 @@
+/* Styles for the ConfirmationOverlayView */
+
+/* Label Styles */
+.label-message {
+    -fx-font-size: 14;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* Yes Button Styles */
+.button-yes {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+    -fx-padding: 5 15;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 4, 0, 0, 2);
+}
+
+/* Hover effect for Yes button */
+.button-yes:hover {
+    -fx-background-color: #45a049;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+/* No Button Styles */
+.button-no {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+    -fx-padding: 5 15;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 4, 0, 0, 2);
+}
+
+/* Hover effect for No button */
+.button-no:hover {
+    -fx-background-color: #e53935;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+/* General Button Press Effect */
+.button-yes:pressed, .button-no:pressed {
+    -fx-background-color: rgba(0, 0, 0, 0.25);
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
