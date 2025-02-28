@@ -1,10 +1,6 @@
 package hProjekt.model;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +45,11 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
     @StudentImplementationRequired("P1.3")
     public Set<Edge> getConnectedRails(final Player player) {
         // TODO: P1.3
-        return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
+        //Jiawen write on 25-02-2025
+        //this edge located on HexGrid "grid", look up all rails of player by calling grid.getRails()
+        //filter the connected ones with connectsTo
+        return grid.getRails(player).values().stream().filter(this::connectsTo).collect(Collectors.toSet());
+        //return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
     }
 
     @Override
@@ -125,7 +125,45 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
     @StudentImplementationRequired("P1.3")
     public boolean addRail(Player player) {
         // TODO: P1.3
-        return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
+        //Jiawen write on 25-02-2025
+        //if the player has already built a rail here...
+        if(this.getRailOwners().contains(player)) {
+            return false;
+        }
+        //if the player has not built any rails
+        if(player.getRails() == null){
+            City cityAt1 = getHexGrid().getCityAt(position1);
+            City cityAt2 = getHexGrid().getCityAt(position2);
+            //there is no city on position 1
+            if(cityAt1 == null){
+                //there is no city on position 2
+                if(cityAt2 == null){
+                    return false;
+                } else if (!cityAt2.isStartingCity()) {
+                    //there is a city on position 2, but it is not the staring city
+                    return false;
+                }
+            } else {
+                //there is a city on position 1, but it is not the staring city
+                if(!cityAt1.isStartingCity()){
+                    return false;
+                }
+            }
+        }
+        //if the player has no connected rails
+        if(getConnectedRails(player) == null){
+            return false;
+        }
+        //Set player list
+        List<Player> addPlayer = new ArrayList<>(getRailOwners());
+        addPlayer.add(player);
+        railOwners.setValue(addPlayer);
+
+        //it doesn't work as below, since add() returns boolean!
+        //railOwners.setValue(addPlayer.add(player));
+
+        return true;
+        //return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
     }
 
     @Override
@@ -137,7 +175,15 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
     @StudentImplementationRequired("P1.3")
     public boolean connectsTo(Edge other) {
         // TODO: P1.3
-        return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
+        //Jiawen write on 25-02-2025
+        //only one of this two positions should equal to one of the position of "other"
+        if (position1.equals(other.getPosition1()) && !position2.equals(other.getPosition2())) {
+            return true;
+        } else if (position1.equals(other.getPosition2()) && !position2.equals(other.getPosition1())) {
+            return true;
+        }
+        return false;
+        //return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
     }
 
     @Override
@@ -149,6 +195,10 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
     @StudentImplementationRequired("P1.3")
     public Set<Edge> getConnectedEdges() {
         // TODO: P1.3
-        return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
+        //Jiawen write on 25-02-2025
+        //this edge located on HexGrid "grid", look up all edges by calling grid.getEdges()
+        //filter the edges with connectsTo, collect them in a Set
+        return grid.getEdges().values().stream().filter(this::connectsTo).collect(Collectors.toSet());
+        //return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
     }
 }

@@ -11,6 +11,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.tudalgo.algoutils.student.annotation.DoNotTouch;
 import org.tudalgo.algoutils.student.annotation.StudentImplementationRequired;
@@ -298,8 +300,18 @@ public class HexGridImpl implements HexGrid {
     @StudentImplementationRequired("P1.3")
     public Map<Set<TilePosition>, Edge> getRails(final Player player) {
         // TODO: P1.3
-        //Jiawen Test 2025-02-23
-        return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
+        //Jiawen write on 25-02-2025
+        //check all edges, filter out edges with a Rail, use Edge.hasRail()
+        //for all edges with a Rail, look up the list of owners, use Edge.getRailOwners();
+        //if this player(parameter) in the list, collect the edge
+
+        Map<Set<TilePosition>, Edge> rails = edges.entrySet().stream()
+            .filter(entry -> entry.getValue().hasRail())
+            .filter(entry -> entry.getValue().getRailOwners().contains(player))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return Collections.unmodifiableMap(rails);
+        //return org.tudalgo.algoutils.student.Student.crash("P1.3 - Remove if implemented");
     }
 
     @Override

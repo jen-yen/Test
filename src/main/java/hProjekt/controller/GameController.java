@@ -1,11 +1,9 @@
 package hProjekt.controller;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.tudalgo.algoutils.student.annotation.DoNotTouch;
 import org.tudalgo.algoutils.student.annotation.StudentImplementationRequired;
@@ -294,7 +292,25 @@ public class GameController {
     @StudentImplementationRequired("P2.6")
     private void letPlayersChoosePath() {
         // TODO: P2.6
-        org.tudalgo.algoutils.student.Student.crash("P2.6 - Remove if implemented");
+        //Jiawen write on 26-02-2025
+        //Zuerst wird der PlayerController für die Fahrphase zurückgesetzt
+        getState().getGamePhaseProperty().setValue(GamePhase.DRIVING_PHASE);
+        roundCounter.set(0);
+        executeDrivingPhase();
+        //get all players, sort by credits
+        getState().getPlayers().stream()
+            .sorted(Comparator.comparing(Player::getCredits).reversed())
+            .forEachOrdered((player) -> {
+                //die Spielerposition auf die Startstadt gesetzt.
+                state.setPlayerPositon(player, getStartingCity().getPosition());
+                //set each player to active in turn, player must perform CHOOSE_PATH and CONFIRM_PATH
+                final PlayerController pc = playerControllers.get(player);
+                withActivePlayer(pc, () -> {
+                    pc.waitForNextAction(PlayerObjective.CHOOSE_PATH);
+                    pc.waitForNextAction(PlayerObjective.CONFIRM_PATH);
+                });
+            });
+        //org.tudalgo.algoutils.student.Student.crash("P2.6 - Remove if implemented");
     }
 
     /**
@@ -311,7 +327,50 @@ public class GameController {
     @StudentImplementationRequired("P2.7")
     private void handleDriving() {
         // TODO: P2.7
-        org.tudalgo.algoutils.student.Student.crash("P2.7 - Remove if implemented");
+        //Jiawen write on 27-02-2025
+
+        long playerArrivedTarget = getState().getPlayerPositions().entrySet().stream()
+            .filter(entry -> entry.getValue().equals(getTargetCity().getPosition()))
+            .count();
+        // Dieser Vorgang wiederholt sich, bis so viele Spieler die Zielstadt erreicht haben,
+        // wie Config.WINNING_CREDITS lang ist oder alle fahrende Spieler die Zielstadt erreicht haben.
+        while(playerArrivedTarget  ==  Config.WINNING_CREDITS.size()
+            || playerArrivedTarget  == getState().getDrivingPlayers().size()){
+            //if there is only one driving player, set player position to target
+            if (getState().getDrivingPlayers().size() == 1){
+                getState().getPlayers().stream()
+                    .forEach((player) -> getState().setPlayerPositon(player, getTargetCity().getPosition()));
+                break;
+            } else if (getState().getDrivingPlayers().size() > 1) {
+                //if more than one driving player
+                //Sofern bereits ein Spieler die Zielstadt erreicht hat, wird zu Beginn jeder Runde jedem Spieler, der noch nicht in
+                // der Zielstadt ist, der Wert von Config.DICE_SIDES vom Würfelüberschuss (surplus) abgezogen.
+                if(playerArrivedTarget  > 0){
+                    getState().getPlayerPositions().entrySet().stream()
+                        .filter(entry -> !entry.getValue().equals(getTargetCity().getPosition()))
+                        .peek(entry -> getState().addPlayerPointSurplus(entry.getKey(), -Config.DICE_SIDES));
+                }
+                //Danach werden die fahrenden Spieler nach Credits sortiert, der Spieler mit den meisten Credits fährt zuerst.
+                getState().getDrivingPlayers().stream().sorted(Comparator.comparing(Player::getCredits).reversed())
+                    //Ein Spieler, der bereits die Zielstadt erreicht hat, tut nichts.
+                    .filter(player -> !getState().getPlayerPositions().get(player).equals(getTargetCity().getPosition()))
+                    //Jeder fahrende Spieler würfelt zuerst, wie weit er fahren kann (PlayerObjective.ROLL_DICE).
+                    // Daraufhin wird die gewürfelte Distanz gefahren (PlayerObjective.DRIVE).
+                    .forEachOrdered((player) -> {
+                            final PlayerController pc = playerControllers.get(player);
+                            withActivePlayer(pc, () -> {
+                                pc.waitForNextAction(PlayerObjective.ROLL_DICE);
+                                pc.waitForNextAction(PlayerObjective.DRIVE);
+                            });
+                        }
+                    );
+            }
+            //renew playerArrivedTarget
+            playerArrivedTarget = getState().getPlayerPositions().entrySet().stream()
+                .filter(entry -> entry.getValue().equals(getTargetCity().getPosition()))
+                .count();
+        }
+        //org.tudalgo.algoutils.student.Student.crash("P2.7 - Remove if implemented");
     }
 
     /**
@@ -325,7 +384,16 @@ public class GameController {
     @StudentImplementationRequired("P2.8")
     private List<Player> getWinners() {
         // TODO: P2.8
-        return org.tudalgo.algoutils.student.Student.crash("P2.8 - Remove if implemented");
+        //Jiawen write on 26-02-2025
+        return getState().getPlayers().stream()
+            //get the players, who reached the target
+            .filter(player -> state.getPlayerPositions().values().equals(getTargetCity().getPosition()))
+            //sorted by surplus point
+            .sorted(Comparator.comparingInt(player -> state.getPlayerPointSurplus().get(player)).reversed())
+            //only first two player get credits
+            .limit(Config.WINNING_CREDITS.size())
+            .collect(Collectors.toList());
+        //return org.tudalgo.algoutils.student.Student.crash("P2.8 - Remove if implemented");
     }
 
     /**
@@ -343,7 +411,40 @@ public class GameController {
     @StudentImplementationRequired("P2.9")
     private void executeDrivingPhase() {
         // TODO: P2.9
-        org.tudalgo.algoutils.student.Student.crash("P2.9 - Remove if implemented");
+        //Jiawen write on 28-02-2025
+        while(getState().getChosenCities().size() < getState().getGrid().getCities().size()){
+            //Erhöhe die Anzahl der Runden um 1.
+            roundCounter.add(1);
+            //Setze die Liste der fahrenden Spieler, der Positionen der Spieler,
+            // die aktuell am Rennen teilnehmen und die Überschüsse (surplus) im GameState zurück
+            getState().resetDrivingPlayers();
+            getState().resetPlayerPositions();
+            getState().resetPlayerSurplus();
+            //Wenn die Anzahl der Runden ein Vielfaches von 3 ist,
+            // löse die Bauphase durch die Methode buildingDuringDrivingPhase() aus.
+            if (roundCounter.get() % 3 == 0){
+                buildingDuringDrivingPhase();
+            }
+
+            //Der ((roundCounter.get() 1) mod state.getPlayers().size())te Spieler
+            // wird mit dem Objective CHOOSE_CITIES dazu aufgefordert, die Start- und Zielstadt zu wählen
+            Player chooseCityPlayer = getState().getPlayers().get((roundCounter.get()-1) % state.getPlayers().size());
+            playerControllers.get(chooseCityPlayer).waitForNextAction(PlayerObjective. CHOOSE_CITIES);
+
+            //Lass die Spieler eine Strecke wählen, die sie fahren möchten, mittels der Methode letPlayersChoosePath()
+            letPlayersChoosePath();
+
+            //Fahre die gewählte Strecke mit der Methode handleDriving().
+            handleDriving();
+
+            //Registriere die Punktzahl der Gewinner mit der Methode getWinners()
+            List<Player> winners = getWinners();
+            //und aktualisiere die Credits der Spieler entsprechend.
+            winners.get(0).addCredits(Config.WINNING_CREDITS.get(0));
+            winners.get(1).addCredits(Config.WINNING_CREDITS.get(1));
+
+        }
+        //org.tudalgo.algoutils.student.Student.crash("P2.9 - Remove if implemented");
     }
 
     /**
