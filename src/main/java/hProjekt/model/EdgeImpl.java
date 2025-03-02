@@ -125,13 +125,13 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
     @StudentImplementationRequired("P1.3")
     public boolean addRail(Player player) {
         // TODO: P1.3
-        //Jiawen write on 25-02-2025
+        //Jiawen alters on 02-03-2025
         //if the player has already built a rail here...
         if(this.getRailOwners().contains(player)) {
             return false;
         }
         //if the player has not built any rails
-        if(player.getRails() == null){
+        if(player.getRails().isEmpty()){
             City cityAt1 = getHexGrid().getCityAt(position1);
             City cityAt2 = getHexGrid().getCityAt(position2);
             //there is no city on position 1
@@ -146,18 +146,22 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
             } else {
                 //there is a city on position 1, but it is not the staring city
                 if(!cityAt1.isStartingCity()){
-                    return false;
+                    //there is no city on position 2
+                    if(cityAt2 == null){
+                        return false;
+                    } else if (!cityAt2.isStartingCity()) {
+                        //there is a city on position 2, but it is not the staring city
+                        return false;
+                    }
                 }
             }
         }
         //if the player has no connected rails
-        if(getConnectedRails(player) == null){
+        if(getConnectedRails(player).isEmpty()){
             return false;
         }
         //Set player list
-        List<Player> addPlayer = new ArrayList<>(getRailOwners());
-        addPlayer.add(player);
-        railOwners.setValue(addPlayer);
+        getRailOwners().add(player);
 
         //it doesn't work as below, since add() returns boolean!
         //railOwners.setValue(addPlayer.add(player));
@@ -175,11 +179,15 @@ public record EdgeImpl(HexGrid grid, TilePosition position1, TilePosition positi
     @StudentImplementationRequired("P1.3")
     public boolean connectsTo(Edge other) {
         // TODO: P1.3
-        //Jiawen write on 25-02-2025
+        //Jiawen alters on 02-03-2025
         //only one of this two positions should equal to one of the position of "other"
         if (position1.equals(other.getPosition1()) && !position2.equals(other.getPosition2())) {
             return true;
         } else if (position1.equals(other.getPosition2()) && !position2.equals(other.getPosition1())) {
+            return true;
+        } else if (position2.equals(other.getPosition1()) && !position1.equals(other.getPosition2())) {
+            return true;
+        } else if (position2.equals(other.getPosition2()) && !position1.equals(other.getPosition1())) {
             return true;
         }
         return false;
