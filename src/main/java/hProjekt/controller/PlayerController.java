@@ -1,29 +1,19 @@
 package hProjekt.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import hProjekt.model.*;
 import org.tudalgo.algoutils.student.annotation.DoNotTouch;
 import org.tudalgo.algoutils.student.annotation.StudentImplementationRequired;
 
 import hProjekt.Config;
 import hProjekt.controller.actions.IllegalActionException;
 import hProjekt.controller.actions.PlayerAction;
-import hProjekt.model.Edge;
-import hProjekt.model.GameState;
-import hProjekt.model.Player;
-import hProjekt.model.PlayerState;
-import hProjekt.model.Tile;
-import hProjekt.model.TilePosition;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Pair;
@@ -313,7 +303,18 @@ public class PlayerController {
     @StudentImplementationRequired("P2.1")
     public boolean canBuildRail(Edge edge) {
         // TODO: P2.1
-        return org.tudalgo.algoutils.student.Student.crash("P2.1 - Remove if implemented");
+        if (edge.getRailOwners().contains(this.getPlayer())) {
+            if (this.getBuildingBudget() >=  edge.getBaseBuildingCost() && (this.getPlayer().getCredits() >= edge.getTotalParallelCost(this.getPlayer()) && (gameController.getState().getGamePhaseProperty().getValue() == GamePhase.BUILDING_PHASE) || (this.getPlayer().getCredits() >= (edge.getTotalParallelCost(this.getPlayer()) + edge.getBaseBuildingCost())))) {
+                return true;
+            }
+            else {
+                return false;
+            }
+
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -324,7 +325,35 @@ public class PlayerController {
     @StudentImplementationRequired("P2.1")
     public Set<Edge> getBuildableRails() {
         // TODO: P2.1
-        return org.tudalgo.algoutils.student.Student.crash("P2.1 - Remove if implemented");
+        if (this.getPlayer().getRails().isEmpty()) {
+            List<Edge> list3 = new LinkedList<>();
+        List<TilePosition> list1 = getState().getGrid().getStartingCities().entrySet().stream().map(s->s.getKey()).toList();
+            getState().getGrid().getStartingCities().entrySet().stream().map(s -> TilePosition.neighbours(s.getKey()));
+            for (int i = 0; i < list1.size(); i++) {
+                List<TilePosition> list2 = TilePosition.neighbours(list1.get(i)).stream().toList();
+                for (int j = 0; j < list2.size(); j++) {
+                    list3.add(getState().getGrid().getEdge(list1.get(i), list2.get(j)));
+                }
+            }
+               return list3.stream().distinct().collect(Collectors.toSet());
+        }
+        else {
+            List<Edge> list3 = new LinkedList<>();
+            List<Edge> list2 = gameController.getState().getGrid().getEdges().entrySet().stream().map(s->s.getValue()).toList();
+           PlayerState p = playerStateProperty.getValue();
+           Set<Edge> set1 = p.rentedEdges();
+           List<Edge> list1 = set1.stream().toList();
+           for (int i = 0; i < list1.size(); i++) {
+               for (int j = 0; j < list2.size(); j++) {
+                   if (list1.get(i).connectsTo(list2.get(j))) {
+                       list3.add(list2.get(j));
+                   }
+               }
+
+           }
+           return list3.stream().distinct().collect(Collectors.toSet());
+
+        }
     }
 
     /**
@@ -339,7 +368,45 @@ public class PlayerController {
     @StudentImplementationRequired("P2.2")
     public void buildRail(final Edge edge) throws IllegalActionException {
         // TODO: P2.2
-        org.tudalgo.algoutils.student.Student.crash("P2.2 - Remove if implemented");
+        if ((!getBuildableRails().contains(edge)) || (!canBuildRail(edge))) {
+            throw new IllegalActionException("Hier dürfen Sie keine Gleise bauen!");
+        }
+        else {
+
+            boolean besetzt = false;
+            List<Player> list1 = gameController.getPlayerControllers().entrySet().stream().map(s-> s.getKey()).toList();
+            List<Player> list2 = new LinkedList<>();
+            for (int i = 0; i < list1.size(); i++) {
+             if (getState().getGrid().getRails(list1.get(i)).entrySet().stream().map(s->s.getValue()).toList().contains(edge)) {
+                 besetzt = true;
+                 list2.add(list1.get(i));
+             }
+            }
+            if (besetzt) {
+                for (int i = 0; i < list2.size(); i++) {
+                    this.getPlayer().addCredits(-edge.getTotalParallelCost(this.getPlayer()));
+                    list2.get(i).addCredits(edge.getTotalParallelCost(this.getPlayer()));
+                }
+            }
+            if (gameController.getState().getGamePhaseProperty().getValue() == GamePhase.BUILDING_PHASE) {
+                buildingBudget = this.getBuildingBudget() - edge.getBaseBuildingCost();
+            }
+            else {
+                 this.getPlayer().addCredits(-edge.getBaseBuildingCost());
+            }
+            Stream<Map.Entry<TilePosition, City>> starting1 = gameController.getState().getGrid().getStartingCities().entrySet().stream();
+            Stream<Map.Entry<TilePosition, City>> connected1 = gameController.getState().getGrid().getConnectedCities().entrySet().stream();
+            Stream<Map.Entry<TilePosition, City>> unconnected1 = gameController.getState().getGrid().getUnconnectedCities().entrySet().stream();
+            edge.addRail(this.getPlayer());
+            Stream<Map.Entry<TilePosition, City>> starting2 = gameController.getState().getGrid().getStartingCities().entrySet().stream();
+            Stream<Map.Entry<TilePosition, City>> connected2 = gameController.getState().getGrid().getConnectedCities().entrySet().stream();
+            Stream<Map.Entry<TilePosition, City>> unconnected2 = gameController.getState().getGrid().getUnconnectedCities().entrySet().stream();
+            Stream<Map.Entry<TilePosition, City>> connected3 = connected2.filter(s -> !connected1.toList().contains(s));
+            Map.Entry<TilePosition, City> entry1 = connected3.toList().get(0);
+            if (connected2.count() > connected1.count() && !starting1.toList().contains(entry1)) {
+                player.addCredits(Config.CITY_CONNECTION_BONUS);
+            }
+        }
     }
 
     /**
