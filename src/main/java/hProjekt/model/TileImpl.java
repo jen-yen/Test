@@ -1,6 +1,7 @@
 package hProjekt.model;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,7 +56,7 @@ public record TileImpl(TilePosition position, Type type, ObservableDoubleValue h
     @StudentImplementationRequired("P1.4")
     public Edge getEdge(final EdgeDirection direction) {
         // TODO: P1.4
-        return org.tudalgo.algoutils.student.Student.crash("P1.4 - Remove if implemented");
+        return this.getEdge(direction);
     }
 
     @Override
@@ -85,7 +86,7 @@ public record TileImpl(TilePosition position, Type type, ObservableDoubleValue h
     @StudentImplementationRequired("P1.4")
     public Tile getNeighbour(final EdgeDirection direction) {
         // TODO: P1.4
-        return org.tudalgo.algoutils.student.Student.crash("P1.4 - Remove if implemented");
+       return this.getNeighbour(direction);
     }
 
     @Override
@@ -97,7 +98,26 @@ public record TileImpl(TilePosition position, Type type, ObservableDoubleValue h
     @StudentImplementationRequired("P1.4")
     public Set<Tile> getConnectedNeighbours(Set<Edge> connectingEdges) {
         // TODO: P1.4
-        return org.tudalgo.algoutils.student.Student.crash("P1.4 - Remove if implemented");
+        Set<Tile> setTile1 = new HashSet<>();
+        if (connectingEdges.contains(this.getEdge(EdgeDirection.EAST))) {
+            setTile1.add(this.getNeighbour(EdgeDirection.EAST));
+        }
+        if (connectingEdges.contains(this.getEdge(EdgeDirection.NORTH_EAST))) {
+            setTile1.add(this.getNeighbour(EdgeDirection.NORTH_EAST));
+        }
+        if (connectingEdges.contains(this.getEdge(EdgeDirection.NORTH_WEST))) {
+            setTile1.add(this.getNeighbour(EdgeDirection.NORTH_WEST));
+        }
+        if (connectingEdges.contains(this.getEdge(EdgeDirection.SOUTH_EAST))) {
+            setTile1.add(this.getNeighbour(EdgeDirection.SOUTH_EAST));
+        }
+        if (connectingEdges.contains(this.getEdge(EdgeDirection.SOUTH_WEST))) {
+            setTile1.add(this.getNeighbour(EdgeDirection.SOUTH_WEST));
+        }
+        if (connectingEdges.contains(this.getEdge(EdgeDirection.WEST))) {
+            setTile1.add(this.getNeighbour(EdgeDirection.WEST));
+        }
+        return setTile1;
     }
 
     @Override
