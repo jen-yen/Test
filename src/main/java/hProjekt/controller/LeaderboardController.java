@@ -4,6 +4,9 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 import org.tudalgo.algoutils.student.annotation.StudentImplementationRequired;
 
@@ -47,8 +50,19 @@ public class LeaderboardController {
      */
     @StudentImplementationRequired("P3.1")
     public static void savePlayerData(String playerName, int score, boolean ai) {
-        // TODO: P3.1
-        org.tudalgo.algoutils.student.Student.crash("P3.1 - Remove if implemented");
+        try {
+            // Initialize the CSV file
+            initializeCsv();
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            BufferedWriter writer = Files.newBufferedWriter(Config.CSV_PATH);
+            writer.write(playerName + "," + ai + "," + timestamp + "," + score); // New line
+            writer.close();
+
+        } catch (IOException e) {
+            System.out.println("Couldn't write to the leaderboard csv file: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -60,7 +74,20 @@ public class LeaderboardController {
      */
     @StudentImplementationRequired("P3.2")
     public static List<LeaderboardEntry> loadLeaderboardData() {
-        // TODO: P3.2
-        return org.tudalgo.algoutils.student.Student.crash("P3.2 - Remove if implemented");
+        try {
+            // Return the list of LeaderboardEntry objects
+            return Files.newBufferedReader(Config.CSV_PATH)
+            .lines()
+            .skip(1) // Skip header
+            .map(line -> line.split(","))// Split each line by ","
+            .map(lineArray -> new LeaderboardEntry(lineArray[0], Boolean.parseBoolean(lineArray[1]),lineArray[2],
+                Integer.parseInt(lineArray[3]))) // Create a new LeaderboardEntry object with the formatted data
+            .collect(Collectors.toList()); // Return a LeaderboardEntry objects list
+
+        } catch (IOException e) {
+            System.out.println("Couldn't read from the leaderboard csv file: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 }
