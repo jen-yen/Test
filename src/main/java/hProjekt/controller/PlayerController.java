@@ -556,7 +556,12 @@ public class PlayerController {
     @StudentImplementationRequired("P2.5")
     public boolean canDrive() {
         // TODO: P2.5
-        return org.tudalgo.algoutils.student.Student.crash("P2.5 - Remove if implemented");
+        if (gameController.getState().getGamePhaseProperty().getValue() == GamePhase.DRIVING_PHASE && gameController.getState().getDrivingPlayers().contains(player)) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -639,6 +644,23 @@ public class PlayerController {
     @StudentImplementationRequired("P2.5")
     public void drive(final Tile targetTile) throws IllegalActionException {
         // TODO: P2.5
-        org.tudalgo.algoutils.student.Student.crash("P2.5 - Remove if implemented");
+        Map<Tile, List<Tile>> moeglicheZiele = getDrivableTiles();
+        if (!canDrive() || !moeglicheZiele.keySet().contains(targetTile)) {
+            throw new IllegalActionException("Der Spieler kann nicht fahren.");
+        }
+        else {
+            int index = gameController.getState().getPlayerPositions().keySet().stream().toList().indexOf(player);
+            TilePosition oldTilePosition = gameController.getState().getPlayerPositions().entrySet().stream().toList().get(index).getValue();
+            gameController.getState().getPlayerPositions().replace(player,oldTilePosition, targetTile.getPosition());
+            if (targetTile.hasCity()) {
+                City zielStadt = gameController.chosenCitiesProperty().getValue().getValue();
+                if (zielStadt.getPosition().equals(targetTile.getPosition())) {
+                    int Würfelzahl = gameController.getCurrentDiceRoll();
+                    List<Tile> tilesVonStartBisZiel = moeglicheZiele.get(targetTile);
+                    int surplus = Würfelzahl - tilesVonStartBisZiel.size();
+                    gameController.getState().addPlayerPointSurplus(player, surplus);
+                }
+            }
+        }
     }
 }
