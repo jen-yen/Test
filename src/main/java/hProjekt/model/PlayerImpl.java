@@ -36,57 +36,50 @@ public class PlayerImpl implements Player {
     @Override
     @StudentImplementationRequired("P1.1")
     public HexGrid getHexGrid() {
-        // TODO: P1.1
-        return org.tudalgo.algoutils.student.Student.crash("P1.1 - Remove if implemented");
+        return this.hexGrid;
     }
 
     @Override
     @StudentImplementationRequired("P1.1")
     public String getName() {
-        // TODO: P1.1
-        return org.tudalgo.algoutils.student.Student.crash("P1.1 - Remove if implemented");
+        return this.name;
     }
 
     @Override
     @StudentImplementationRequired("P1.1")
     public int getID() {
-        // TODO: P1.1
-        return org.tudalgo.algoutils.student.Student.crash("P1.1 - Remove if implemented");
+        return this.id;
     }
 
     @Override
     @StudentImplementationRequired("P1.1")
     public Color getColor() {
-        // TODO: P1.1
-        return org.tudalgo.algoutils.student.Student.crash("P1.1 - Remove if implemented");
+        return this.color;
     }
 
     @Override
     @StudentImplementationRequired("P1.1")
     public boolean isAi() {
-        // TODO: P1.1
-        return org.tudalgo.algoutils.student.Student.crash("P1.1 - Remove if implemented");
+        return this.aiController != null;
     }
 
     @Override
     @StudentImplementationRequired("P1.2")
     public int getCredits() {
-        // TODO: P1.2
-        return org.tudalgo.algoutils.student.Student.crash("P1.2 - Remove if implemented");
+        return this.credits;
     }
 
     @Override
     @StudentImplementationRequired("P1.2")
     public void addCredits(int amount) {
-        // TODO: P1.2
-        org.tudalgo.algoutils.student.Student.crash("P1.2 - Remove if implemented");
+        this.credits += amount;
     }
 
     @Override
     @StudentImplementationRequired("P1.2")
     public boolean removeCredits(int amount) {
-        // TODO: P1.2
-        return org.tudalgo.algoutils.student.Student.crash("P1.2 - Remove if implemented");
+        this.credits -= amount;
+        return amount > 0 && this.credits >= amount;
     }
 
     @Override

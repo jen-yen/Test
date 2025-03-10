@@ -327,22 +327,41 @@ public class HexGridImpl implements HexGrid {
     @Override
     @StudentImplementationRequired("P1.4")
     public Map<TilePosition, City> getConnectedCities() {
-        // TODO: P1.4
-        return org.tudalgo.algoutils.student.Student.crash("P1.4 - Remove if implemented");
+        // Convert to stream, filter by checking if at least a city edge is connected then collect to map
+        return cities.entrySet().stream()
+            .filter(entry -> {
+                City city = entry.getValue();
+                // Loop over all edges and check if the condition that the edge has a rail built on and if the current
+                // city is next to this edge on either positions is satisfied at least once
+                return getEdges().values().stream()
+                    .anyMatch(edge -> edge.hasRail() &&
+                        (edge.getPosition1().equals(city.getPosition()) || edge.getPosition2().equals(city.getPosition())));
+            })
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     }
 
     @Override
     @StudentImplementationRequired("P1.4")
     public Map<TilePosition, City> getUnconnectedCities() {
-        // TODO: P1.4
-        return org.tudalgo.algoutils.student.Student.crash("P1.4 - Remove if implemented");
+        // Convert to stream, filter by checking if no city edge is connected then collect to map
+        return cities.entrySet().stream()
+            .filter(entry -> {
+                City city = entry.getValue();
+                // Loop over all edges and check if the condition that the edge has a rail built on and if the current
+                // city is next to this edge on either positions is never satisfied
+                return getEdges().values().stream()
+                    .noneMatch(edge -> edge.hasRail() &&
+                        (edge.getPosition1().equals(city.getPosition()) || edge.getPosition2().equals(city.getPosition())));
+            })
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
     @StudentImplementationRequired("P1.4")
     public Map<TilePosition, City> getStartingCities() {
-        // TODO: P1.4
-        return org.tudalgo.algoutils.student.Student.crash("P1.4 - Remove if implemented");
+        // Convert to stream, filter by checking if the city is a starting city then collect to map
+        return cities.entrySet().stream().filter((entry) -> entry.getValue().isStartingCity()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
