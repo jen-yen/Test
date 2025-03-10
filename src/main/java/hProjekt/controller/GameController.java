@@ -7,17 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import hProjekt.model.*;
 import org.tudalgo.algoutils.student.annotation.DoNotTouch;
 import org.tudalgo.algoutils.student.annotation.StudentImplementationRequired;
 
 import hProjekt.Config;
 import hProjekt.controller.actions.ConfirmBuildAction;
 import hProjekt.controller.actions.PlayerAction;
-import hProjekt.model.City;
-import hProjekt.model.GameState;
-import hProjekt.model.HexGrid;
-import hProjekt.model.HexGridImpl;
-import hProjekt.model.Player;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyProperty;
@@ -257,7 +253,21 @@ public class GameController {
     @StudentImplementationRequired("P2.3")
     private void executeBuildingPhase() {
         // TODO: P2.3
-        org.tudalgo.algoutils.student.Student.crash("P2.3 - Remove if implemented");
+        int unconnectedCities = state.getGrid().getUnconnectedCities().size();
+        if (unconnectedCities >= Config.UNCONNECTED_CITIES_START_THRESHOLD) {
+          roundCounter.set(roundCounter.get() + 1);
+          int index = (roundCounter.get() - 1) % playerControllers.size();
+          activePlayerController.setValue(playerControllers.entrySet().stream().map(p -> p.getValue()).toList().get(index));
+          activePlayerController.getValue().setPlayerObjective(PlayerObjective.ROLL_DICE);
+          for (int i = index; i < index + playerControllers.size(); i++) {
+              List<PlayerController> playerControllerList = playerControllers.entrySet().stream().map(pc -> pc.getValue()).toList();
+              PlayerController aktuellerPlayerController = playerControllerList.get(i%playerControllerList.size());
+              aktuellerPlayerController.setBuildingBudget(currentDiceRoll.getValue());
+              waitForBuild(aktuellerPlayerController);
+          }
+          //activePlayerController.getValue().setBuildingBudget(currentDiceRoll.getValue());
+        }
+
     }
 
     /**
@@ -268,7 +278,18 @@ public class GameController {
     @StudentImplementationRequired("P2.4")
     public void chooseCities() {
         // TODO: P2.4
-        org.tudalgo.algoutils.student.Student.crash("P2.4 - Remove if implemented");
+        int unconnectedCitiesLength1 = state.getGrid().getUnconnectedCities().size();
+        int index1 = Config.RANDOM.nextInt(unconnectedCitiesLength1);
+        Map.Entry<TilePosition,City> startCity = state.getGrid().getUnconnectedCities().entrySet().stream().toList().get(index1);
+        City start = startCity.getValue();
+        state.getGrid().getConnectedCities().put(startCity.getKey(), startCity.getValue());
+        int unconnectedCitiesLength2 = state.getGrid().getUnconnectedCities().size();
+        int index2 = Config.RANDOM.nextInt(unconnectedCitiesLength2);
+        Map.Entry<TilePosition,City> zielCity = state.getGrid().getUnconnectedCities().entrySet().stream().toList().get(index2);
+        City ziel = zielCity.getValue();
+        state.getGrid().getConnectedCities().put(zielCity.getKey(), zielCity.getValue());
+        Pair<City, City> startZielPaar = new Pair<>(start, ziel);
+        chosenCitiesProperty.setValue(startZielPaar);
     }
 
     /**
