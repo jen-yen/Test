@@ -1,25 +1,19 @@
 package hProjekt.controller.gui;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import hProjekt.controller.GamePhase;
+import hProjekt.controller.actions.*;
 import org.tudalgo.algoutils.student.annotation.DoNotTouch;
 import org.tudalgo.algoutils.student.annotation.StudentImplementationRequired;
 
 import hProjekt.Config;
 import hProjekt.controller.PlayerController;
 import hProjekt.controller.PlayerObjective;
-import hProjekt.controller.actions.ChooseCitiesAction;
-import hProjekt.controller.actions.ChooseRailsAction;
-import hProjekt.controller.actions.ConfirmBuildAction;
-import hProjekt.controller.actions.ConfirmDrive;
-import hProjekt.controller.actions.DriveAction;
-import hProjekt.controller.actions.RollDiceAction;
 import hProjekt.controller.gui.scene.GameBoardController;
 import hProjekt.model.Edge;
 import hProjekt.model.Player;
@@ -39,7 +33,7 @@ import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
 import javafx.util.Pair;
 import javafx.util.Subscription;
-
+import java.util.stream.*;
 /**
  * This class is responsible for handling all player actions performed through
  * the UI. It ensures that the correct buttons are enabled and disabled based on
@@ -142,7 +136,30 @@ public class PlayerActionsController {
     @StudentImplementationRequired("P4.1")
     private void updateUIBasedOnObjective(final PlayerObjective objective) {
         // TODO: P4.1
-        org.tudalgo.algoutils.student.Student.crash("P4.1 - Remove if implemented");
+        resetUiToBaseState();
+        removeAllHighlights();
+        updatePlayerInformation();
+        if (!getPlayer().isAi()) {
+            if (objective.getAllowedActions().contains(BuildRailAction.class)) {
+                addBuildHandlers();
+            }
+            if (objective.getAllowedActions().contains(RollDiceAction.class)){
+                rollDiceOverlayView.enableRollDiceButton();
+            }
+            if (objective.getAllowedActions().contains(ChooseCitiesAction.class)) {
+                cityOverlayView.enableChooseButton();
+            }
+            if (objective.getAllowedActions().contains(ChooseRailsAction.class)) {
+                configureRailSelection();
+            }
+            if (objective.getAllowedActions().contains(ConfirmDrive.class)) {
+                showRentingConfirmation();
+            }
+            if (objective.getAllowedActions().contains(DriveAction.class)) {
+                updateDriveableTiles();
+            }
+
+        }
     }
 
     /**
@@ -405,7 +422,25 @@ public class PlayerActionsController {
     private List<Edge> trimPath(BiFunction<Pair<Integer, Integer>, Integer, Boolean> terminateFunction,
             List<Edge> path) {
         // TODO: P4.2
-        return org.tudalgo.algoutils.student.Student.crash("P4.2 - Remove if implemented");
+        for (int i = 0; i < path.size(); i++) {
+            List<Edge> list1 = new LinkedList<>();
+            int basisGesamt = 0;
+            int parallelGesamt = 0;
+            int distanzGesamt = 0;
+            for (int j = 0; j <= i; j++) {
+                list1.add(path.get(j));
+                basisGesamt = basisGesamt + list1.get(j).getBaseBuildingCost();
+                parallelGesamt = parallelGesamt + list1.get(j).getTotalParallelCost(getPlayer());
+                distanzGesamt = distanzGesamt + 1;
+            }
+            Pair<Integer, Integer> pair1 = new Pair<>(basisGesamt,parallelGesamt);
+            if (terminateFunction.apply(pair1, distanzGesamt)) {
+                return list1;
+            }
+
+        }
+        return path;
+
     }
 
     /**
@@ -416,7 +451,7 @@ public class PlayerActionsController {
     @StudentImplementationRequired("P4.2")
     private void highlightPath(List<Edge> path) {
         // TODO: P4.2
-        org.tudalgo.algoutils.student.Student.crash("P4.2 - Remove if implemented");
+       getHexGridController().getEdgeControllers().stream().filter(s -> path.contains(s.getEdge())).forEach(s -> s.highlight());
     }
 
     /**
@@ -430,7 +465,62 @@ public class PlayerActionsController {
     @StudentImplementationRequired("P4.3")
     private void highlightStartingTiles() {
         // TODO: P4.3
-        org.tudalgo.algoutils.student.Student.crash("P4.3 - Remove if implemented");
+       /* selectedTile.setValue(null);
+        if (getPlayer().getRails().isEmpty()) {
+            List<TilePosition> list1 = getHexGridController().getHexGrid().getStartingCities().entrySet().stream().map(s -> s.getKey()).toList();
+            Stream<Tile> stream1 = getHexGridController().getTileControllers().stream().map(s -> s.getTile()).filter(s -> list1.contains(s.getPosition()));
+            List<Tile> list2 = stream1.toList();
+            getHexGridController().getTileControllers().stream().filter(s-> list2.contains(s)).forEach(s -> s.highlight(t -> {if (selectedTile.getValue() == null) {selectedTile.setValue(t);} else {selectedTile.setValue(null);};}));
+        }
+        else {
+
+        }*/
+        selectedTile.setValue(null);
+        if (getPlayer().getRails().isEmpty()) {
+            Map<TilePosition,Tile> tiles = getHexGridController().getHexGrid().getTiles();
+            Stream<TileController> tileControllersStream =
+            getHexGridController().getCityControllersMap().keySet().stream()
+                .filter(city -> city.isStartingCity())
+                .map(city -> city.getPosition())
+                .map(tilePosition -> tiles.get(tilePosition))
+                .map(tile -> getHexGridController().getTileControllersMap().get(tile));
+                tileControllersStream.forEach(tileController -> tileController.highlight(
+                    (tile) -> {
+                        if (selectedTile == null) {
+                            selectedTile.setValue(tile);
+                            List<TileController> TileControllersWithoutTileList = tileControllersStream.toList();
+                            TileControllersWithoutTileList.remove(tile);
+                            Stream<TileController> TileControllersWithoutTileStream = TileControllersWithoutTileList.stream();
+                            TileControllersWithoutTileStream.forEach(tileController2 -> tileController2.unhighlight());
+                        }
+                        else {
+                            selectedTile.setValue(null);
+                            highlightStartingTiles();
+                        }
+                    }
+                ));
+        }
+        else {
+            Stream<TileController> tileControllersStream =
+            getHexGridController().getTileControllersMap().entrySet().stream()
+                .filter(entry -> !entry.getKey().getRails(getPlayer()).isEmpty())
+                .map(entry -> entry.getValue());
+                tileControllersStream.forEach(tileController -> tileController.highlight(
+                    (tile) -> {
+                        if (selectedTile == null) {
+                            selectedTile.setValue(tile);
+                            List<TileController> TileControllersWithoutTileList = tileControllersStream.toList();
+                            TileControllersWithoutTileList.remove(tile);
+                            Stream<TileController> TileControllersWithoutTileStream = TileControllersWithoutTileList.stream();
+                            TileControllersWithoutTileStream.forEach(tileController2 -> tileController2.unhighlight());
+                        }
+                        else {
+                            selectedTile.setValue(null);
+                            highlightStartingTiles();
+                        }
+                    }
+                ));
+        }
     }
 
     /**
@@ -441,7 +531,34 @@ public class PlayerActionsController {
     @StudentImplementationRequired("P4.4")
     public void addBuildHandlers() {
         // TODO: P4.4
-        org.tudalgo.algoutils.student.Student.crash("P4.4 - Remove if implemented");
+      selectedRailPath.clear();
+      selectedTileSubscription.unsubscribe();
+      showConfirmBuildDialog();
+      /*if (!(getPlayerController().getBuildingBudget() == 0)) {
+           selectedRailPath.addListener(selectedRailPathListener);
+           //setupTileSelectionHandlers();
+
+       }*/
+       if (playerStateProperty.getValue().buildingBudget() > 0) {
+           selectedRailPath.addListener(selectedRailPathListener);
+
+           BiFunction<Pair<Integer, Integer>, Integer, Boolean> terminatefunction = (pairOfCost, length) -> {
+              if (pairOfCost.getKey() > getPlayerState().buildingBudget() || pairOfCost.getValue() > getPlayer().getCredits()) {
+                  return true;
+              }
+              if (gameBoardController.getGamePhase().equals(GamePhase.DRIVING_PHASE) && pairOfCost.getKey() + pairOfCost.getValue() > getPlayer().getCredits()) {
+                  // In der Fahrphase bezahlt jeder Spieler seine Baukosten mit seinen Credits und nicht mit seinem Baubudget.
+                  return true;
+              }
+              return false;
+           };
+
+
+           //highlightPath(terminatefunction, findBuildPath(/*Startteil*/, selectedTile));
+           //setupTileSelectionHandlers();
+       }
+
+
     }
 
     /**
