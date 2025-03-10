@@ -531,34 +531,94 @@ public class PlayerActionsController {
     @StudentImplementationRequired("P4.4")
     public void addBuildHandlers() {
         // TODO: P4.4
-      selectedRailPath.clear();
-      selectedTileSubscription.unsubscribe();
-      showConfirmBuildDialog();
-      /*if (!(getPlayerController().getBuildingBudget() == 0)) {
-           selectedRailPath.addListener(selectedRailPathListener);
-           //setupTileSelectionHandlers();
+        //Jiawen write on 10.03
+        selectedRailPath.clear();
+        selectedTileSubscription.unsubscribe();
+        showConfirmBuildDialog(); //Daraufhin wird dem Spieler der Bestätigungs-Dialog angezeigt.
+        if(playerStateProperty.getValue().buildingBudget() > 0){//aktuelle Baubudget nicht aufgebraucht
+            selectedRailPath.addListener(selectedRailPathListener);
 
-       }*/
-       if (playerStateProperty.getValue().buildingBudget() > 0) {
-           selectedRailPath.addListener(selectedRailPathListener);
+            BiFunction<Pair<Integer, Integer>, Integer, Boolean> terminateFunction = (pairOfCost, length) ->{
+                if(pairOfCost.getKey() > getPlayerState().buildingBudget() || pairOfCost.getValue() > getPlayer().getCredits()){
+                    //Die Basis-Baukosten übersteigen das Baubudget.
+                    //Die Parallelkosten sind höher als der aktuelle Kontostand des Spielers.
+                    return true;
+                }
+                if(gameBoardController.getGamePhase().equals(GamePhase.DRIVING_PHASE) && pairOfCost.getKey()+ pairOfCost.getValue() > getPlayerState().buildingBudget()){
+                    //Wenn das Spiel sich in der Fahrphase befindet,
+                    // dürfen die Gesamtkosten nicht den aktuellen Kontostand des Spielers überschreiten.
+                    return true;
+                }
+                return false;
+            };
 
-           BiFunction<Pair<Integer, Integer>, Integer, Boolean> terminatefunction = (pairOfCost, length) -> {
-              if (pairOfCost.getKey() > getPlayerState().buildingBudget() || pairOfCost.getValue() > getPlayer().getCredits()) {
-                  return true;
-              }
-              if (gameBoardController.getGamePhase().equals(GamePhase.DRIVING_PHASE) && pairOfCost.getKey() + pairOfCost.getValue() > getPlayer().getCredits()) {
-                  // In der Fahrphase bezahlt jeder Spieler seine Baukosten mit seinen Credits und nicht mit seinem Baubudget.
-                  return true;
-              }
-              return false;
-           };
+            BiConsumer<TileController, Tile> handleTileHover = (tileController, tile) -> {
+                tileController.highlight(
+                    (tile) -> {
+                        if (selectedTile == null) {
+                            selectedTile.setValue(tile);
+                            List<TileController> TileControllersWithoutTileList = tileControllersStream.toList();
+                            TileControllersWithoutTileList.remove(tile);
+                            Stream<TileController> TileControllersWithoutTileStream = TileControllersWithoutTileList.stream();
+                            TileControllersWithoutTileStream.forEach(tileController2 -> tileController2.unhighlight());
+                        }
+                        else {
+                            selectedTile.setValue(null);
+                            highlightStartingTiles();
+                        }
+                );
+                getHexGridController().getTileControllersMap().get(tile).highlight(
+                    (tile) -> {
+                        if (selectedTile == null) {
+                            selectedTile.setValue(tile);
+                            List<TileController> TileControllersWithoutTileList = tileControllersStream.toList();
+                            TileControllersWithoutTileList.remove(tile);
+                            Stream<TileController> TileControllersWithoutTileStream = TileControllersWithoutTileList.stream();
+                            TileControllersWithoutTileStream.forEach(tileController2 -> tileController2.unhighlight());
+                        }
+                        else {
+                            selectedTile.setValue(null);
+                            highlightStartingTiles();
+                        }
+                );
+                List<Edge> pathToHoveredTile = findBuildPath(tileController.getTile(), tile);
+                highlightTrimmedPath(terminateFunction, pathToHoveredTile);
+            };
+            Consumer<TileController> handleTileClick = (tileController) -> {
+                tileController.highlight(
+                    (tile) -> {
+                        if (selectedTile == null) {
+                            selectedTile.setValue(tile);
+                            List<TileController> TileControllersWithoutTileList = tileControllersStream.toList();
+                            TileControllersWithoutTileList.remove(tile);
+                            Stream<TileController> TileControllersWithoutTileStream = TileControllersWithoutTileList.stream();
+                            TileControllersWithoutTileStream.forEach(tileController2 -> tileController2.unhighlight());
+                        }
+                        else {
+                            selectedTile.setValue(null);
+                            highlightStartingTiles();
+                        }
+                );
+            };
+            
+            setupTileSelectionHandlers(handleTileHover, handleTileClick, (Set<Edge>) selectedRailPath);
 
 
-           //highlightPath(terminatefunction, findBuildPath(/*Startteil*/, selectedTile));
-           //setupTileSelectionHandlers();
-       }
+            // Wenn ein Tile angeklickt wird, soll
+            // der selectedRailPath in Form einer BuildRailAction an den PlayerController übermittelt werden.
+            if(!selectedRailPath.isEmpty()){
+                for(Edge path : selectedRailPath){
+                    try{
+                        getPlayerController().buildRail(path);
+                    }
+                    catch(IllegalActionException e){
+                        throw new RuntimeException(e.getMessage());
+                    }
+                }
+            }
 
-
+        }
+        //org.tudalgo.algoutils.student.Student.crash("P4.4 - Remove if implemented");
     }
 
     /**
